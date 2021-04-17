@@ -1,13 +1,15 @@
 { name ? "ghcr.io/h2eproject/nix-docker-multiarch"
-, cmd ? ({ hello }: "${hello}/bin/hello"), tagBase ? "latest" }:
+, cmd ? ({ hello }: "${hello}/bin/hello"), tagBase ? "latest", nixpkgs ? import
+  (builtins.fetchTarball
+    "https://releases.nixos.org/nixos/unstable/nixos-21.05pre282843.dcdf30a78a5/nixexprs.tar.xz")
+}:
 
 let
-  nixpkgs = import <nixpkgs>;
   pkgs = nixpkgs { };
   lib = pkgs.lib;
   buildImage = arch:
-    { dockerTools, callPackage }:
-    dockerTools.buildImage {
+    { callPackage }:
+    pkgs.dockerTools.buildImage {
       inherit name;
       tag = "${tagBase}-${arch}";
       config = { Cmd = [ (callPackage cmd { }) ]; };
@@ -21,7 +23,7 @@ let
   }) architectures;
   images = map ({ arch, pkgs }: rec {
     inherit arch;
-    image = pkgs.callPackage (buildImage arch) { inherit (pkgs) dockerTools; };
+    image = pkgs.callPackage (buildImage arch) { };
     tag = "${tagBase}-${arch}";
   }) crossSystems;
   loadAndPush = builtins.concatStringsSep "\n" (lib.concatMap
