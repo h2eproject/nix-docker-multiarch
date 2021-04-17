@@ -7,4 +7,4 @@ To build and push the containers, run `nix run -f usage-example.nix -c push`.
 
 ## CI
 
-Copy the GitHub Actions workflow from `.github/workflows/build.nix` and customize based on what images you'd like to build.
+Copy the GitHub Actions workflow from `.github/workflows/publish.yml` and customize based on what images you'd like to build.
