@@ -20,5 +20,9 @@ jobs:
         with:
           name: h2e
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+      - run: nix run --argstr name 'ghcr.io/${{ github.repository }}' --argstr tagBase '${{ github.sha }}' -c push
+      - run: nix run --argstr name 'ghcr.io/${{ github.repository }}-example' --argstr tagBase '${{ github.sha }}' -c push -f usage-example.nix
       - run: nix run --argstr name 'ghcr.io/${{ github.repository }}' --argstr tagBase latest -c push
+        if: ${{ github.ref == 'refs/heads/main'}}
       - run: nix run --argstr name 'ghcr.io/${{ github.repository }}-example' --argstr tagBase latest -c push
+        if: ${{ github.ref == 'refs/heads/main' }}
