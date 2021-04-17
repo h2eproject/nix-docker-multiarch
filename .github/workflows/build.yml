@@ -19,3 +19,18 @@ jobs:
           name: h2e
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
       - run: nix run --argstr name 'ghcr.io/${{ github.repository }}' --argstr tagBase '${{ github.sha }}' -c push
+  publish-example:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: '${{ github.repository_owner }}'
+          password: '${{ secrets.GITHUB_TOKEN }}'
+      - uses: cachix/install-nix-action@v13
+      - uses: cachix/cachix-action@v9
+        with:
+          name: h2e
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+      - run: nix run --argstr name 'ghcr.io/${{ github.repository }}-example' --argstr tagBase '${{ github.sha }}' -c push -f usage-example.nix
