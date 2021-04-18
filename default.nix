@@ -1,26 +1,23 @@
 { name ? "ghcr.io/h2eproject/nix-docker-multiarch"
 , cmd ? ({ hello }: "${hello}/bin/hello"), tagBase ? "latest"
-, nixpkgs ? import <nixpkgs>, config ? { } }:
+, pkgs ? import <nixpkgs> { }, config ? { } }:
 
 let
-  pkgs = nixpkgs { };
   lib = pkgs.lib;
   buildImage = arch:
     { dockerTools, callPackage }:
     dockerTools.buildImage {
       inherit name;
       tag = "${tagBase}-${arch}";
-      config = {
-        Cmd = [ (callPackage cmd { }) ];
-      } // config;
+      config = { Cmd = [ (callPackage cmd { }) ]; } // config;
     };
-  architectures = [ "x86_64" "aarch64" ];
-  crossSystems = map (arch: {
+  architectures = {
+    "x86_64" = pkgs.pkgsCross.gnu64;
+    "aarch64" = pkgs.pkgsCross.aarch64-multiplatform;
+  };
+  crossSystems = lib.mapAttrsToList (arch: cross: {
     inherit arch;
-    pkgs = if pkgs.system == "${arch}-linux" then
-      pkgs
-    else
-      nixpkgs { crossSystem = { config = "${arch}-linux"; }; };
+    pkgs = if pkgs.system == "${arch}-linux" then pkgs else cross;
   }) architectures;
   images = map ({ arch, pkgs }: rec {
     inherit arch;
